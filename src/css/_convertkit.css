@@ -1,0 +1,16 @@
+.formkit-form[data-uid="fb5ed9ed42"] .formkit-alert {
+    @apply flex items-center w-full px-5 py-3 mb-2 font-medium border border-transparent rounded-md;
+}
+
+.formkit-form[data-uid="fb5ed9ed42"] .formkit-alert:empty {
+    @apply hidden;
+
+}
+
+.formkit-alert-success {
+    @apply flex items-center w-full px-5 py-3 font-medium border border-transparent rounded-md bg-lime-50 text-lime-900;
+}
+
+.formkit-form[data-uid="fb5ed9ed42"] .formkit-alert-error {
+    @apply text-red-800 bg-red-100;
+}

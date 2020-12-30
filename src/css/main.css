@@ -2,7 +2,8 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@import "./prism.css";
+@import "./_prism.css";
+@import "./_convertkit.css";
 
 [x-cloak] {
     @apply hidden

@@ -41,7 +41,7 @@
         </div>
         <div class="relative px-4 sm:px-6 lg:px-8">
             <div class="mx-auto mt-6 prose prose-lg text-gray-500 prose-lime">
-                <h2>Display Editable List of Projects</h2>
+                <h2>Building Editable Projects List</h2>
                 <p>Demonstrates usage of:</p>
                 <dl class="mb-6">
                     <dt class="pl-4 font-bold">Actions</dt>
@@ -182,7 +182,7 @@ class Projects(Component):
 {% endif %}
 &lt;button type="button" jmb:on.click="save()"&gt;Save&lt;/button&gt;
 &lt;button type="button" jmb:on.click="$jmb.emit('cancel')"&gt;Cancel&lt;/button&gt;{%endraw%}</code></pre>
-                <h2>Create Reusable List Component</h2>
+                <h2>Build Reusable List Component</h2>
                 <p>Demonstrates usage of Component.Config class in order to create reusable components. </p>
                 <pre><code class="language-python"># file: common/list_records.py
 from typing import (
@@ -317,7 +317,7 @@ class ListRecords(Component):
     {% endif %}
 &lt;/nav&gt;
 {%endraw%}</code></pre>
-                <h2>Build App With Reusable Components</h2>
+                <h2>Build Simple App With Reusable Components</h2>
                 <p>Building Imaginary Project managment application with prebuilded reusable CRUD Components</p>
                 <pre><code class="language-python code-small"># file: pages/projects.py
 @jmb.page(

@@ -8,3 +8,6 @@
 [x-cloak] {
     @apply hidden
 }
+.prose pre code.code-small {
+    @apply text-sm;
+}

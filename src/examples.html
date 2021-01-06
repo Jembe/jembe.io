@@ -1,0 +1,430 @@
+{% from '_macros.html' import sign_up %}
+{% extends "_layout.html" %}
+{% block title %}Examples | Jembe{% endblock title %}
+{% block description %}Advanced examples of using Jembe web framework.{% endblock description %}
+{% block content %}
+    <!-- Hero section -->
+    <div class="relative overflow-hidden bg-gray-50">
+
+        <div class="relative pt-6 pb-16 sm:pb-24">
+            <div class="px-4 mx-auto max-w-7xl sm:px-6">
+                <nav class="relative flex items-center justify-between sm:h-10 md:justify-center" aria-label="Global">
+                    <div class="flex items-center flex-1 md:absolute md:inset-y-0 md:left-0">
+                        <div class="flex items-center justify-between w-full md:w-auto">
+                            <a href="/">
+                                <span class="sr-only">Jembe</span>
+                                <img class="w-auto h-10 sm:h-12" src="img/logo-jembe-full.svg" alt="">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hidden md:absolute md:flex md:items-center md:justify-end md:inset-y-0 md:right-0">
+                        <span class="inline-flex rounded-md shadow">
+                            <a href="#newsletter-headline"
+                                class="inline-flex items-center px-4 py-2 text-base font-medium text-white border border-transparent rounded-md bg-lime-600 hover:bg-lime-700">
+                                Notify me when available
+                            </a>
+                        </span>
+                    </div>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="relative py-16 overflow-hidden bg-white">
+        <div class="mx-auto text-lg max-w-prose">
+        <h1>
+            {# <span class="block text-base font-semibold tracking-wide text-center uppercase text-lime-600">Introducing</span> #}
+            <span class="block mt-2 text-3xl font-extrabold leading-8 tracking-tight text-center text-gray-900 sm:text-4xl">Jembe Examples</span>
+        </h1>
+        <p class="mt-8 text-xl leading-8 text-gray-500">Examples on, how to use Jembe to build common UI interactions.</p>
+        </div>
+        <div class="relative px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto mt-6 prose prose-lg text-gray-500 prose-lime">
+                <h2>Display Editable List of Projects</h2>
+                <p>Demonstrates usage of:</p>
+                <dl class="mb-6">
+                    <dt class="pl-4 font-bold">Actions</dt>
+                    <dd class="pl-12">To execute arbitrary logic on component itself</dd>
+                    <dt class="pl-4 font-bold">Events</dt>
+                    <dd class="pl-12">To comunicate with other components on the page</dd>
+                    <dt class="pl-4 font-bold">Listeners</dt>
+                    <dd class="pl-12">To listen for event emited by other components</dd>
+                </dl>
+                <pre><code class="language-python"># file: pages/projects.py
+
+from typing import Optional
+from dataclasses import dataclass
+from jembe import Component, action, listener
+from ..model import Project
+
+@dataclass
+class ProjectForm:
+    """
+    Keeps and validates form data 
+    (Use WTForm or similar lib in real projects)
+    """
+    name: str = ""
+    error: Optional[str] = None
+
+    def is_valid() -> bool:
+        if name:
+            return True
+        self.error = "Name is required"
+        return False
+
+class EditProject(Component):
+    """Display edit form and saves changes"""
+    def __init__(
+        self, 
+        project_id:int, 
+        form:Optional["ProjectForm"] = None, 
+        _project:Optional[Project] = None 
+    ):
+        self._project = _project
+        if form is None:
+            self.state.form = ProjectForm(name=self.project.name)
+        super().__init__()
+    
+    @property
+    def project(self) -> "Project":
+        """
+            Returns project
+            either by quering database or using instance 
+            provided in "_project" __init__ param
+        """
+        if (self._project is None or 
+            self._project.id != self.state.project_id
+        ):
+            self._project = Project.query.get(id=self.state.project_id)
+        return self._project
+    
+    @action
+    def save(self):
+        if self.state.form.is_valid():
+            self.project.name = self.state.form.name
+            db.session.update(self.project)
+            db.session.commit()
+            self.emit(
+                "save", 
+                project=self.project, 
+                project_id=self.project.id
+            )
+            # no need to redispay this component after successfull save
+            return False 
+
+@page("projects", Component.Config(
+    components={
+        "edit": EditProject
+    }
+))
+class Projects(Component):
+    """
+    Display list of projects,
+    searchable by project name.
+    """
+	def __init__(self, search:str=””, display_mode:str=""):
+        """
+            display_mode component state determines if we are displaying
+            list of projects of just EditProject component
+        """
+        def super().__init__()
+
+	def display(self):
+        if self.state.display_mode == "":
+            # get projects from db only if 
+            # we are displaying projects list
+            self.projects = Projects.query()
+            if self.state.search:
+                self.projects = self.projects.filter(
+                    Project.name.like=”{}%”.format(self.state.search)
+                )
+        return self.render_template()
+    
+    @listener(event="_display", source=["./edit"])
+    def on_edit_display(self, event):
+        self.state.display_mode = "edit"
+
+    @listener(event=["save", "cancel"], source=["./edit"])
+    def on_edit_save(self, event):
+        self.state.display_mode = ""</code></pre>
+                <pre><code class="language-jinja2">{%raw%}{# file: templates/projects.html #} 
+&lt;html&gt;
+&lt;body&gt;
+    {% if display_mode == "edit" %}
+        {{component("edit")}}
+    {% else %}
+        &lt;h1&gt;Projects&lt;/h1&gt;
+        &lt;input jmb:bind=”search” type=”text” placeholder=”Search...”/&gt;
+        &lt;ul&gt;
+        {% for project in projects %}
+            &lt;li&gt;
+                {{project}} 
+                &lt;button 
+                    type="button" 
+                    jmb:on.click="{{component("edit").jrl}}"&gt;
+                    Edit
+                &lt;/button&gt;
+            &lt;/li&gt;
+        {% endfor %}
+        &lt;/ul&gt;
+    {% endif %}
+&lt;/body&gt;
+&lt;/html&gt;{%endraw%}</code></pre>
+                <pre><code class="language-jinja2">{%raw%}{# file: templates/projects/edit.html #} 
+&lt;h1&gt;Edit: {{project}}&lt;/h1&gt;
+&lt;label&gt;
+    Name
+    &lt;input jmb:bind.defer=”form.name” type=”text”/&gt;
+&lt;/label&gt;
+{% if form.error %}
+    &lt;div&gt;Error: {{form.error}}&lt;/div&gt;
+{% endif %}
+&lt;button type="button" jmb:on.click="save()"&gt;Save&lt;/button&gt;
+&lt;button type="button" jmb:on.click="$jmb.emit('cancel')"&gt;Cancel&lt;/button&gt;{%endraw%}</code></pre>
+                <h2>Create Reusable List Component</h2>
+                <p>Demonstrates usage of Component.Config class in order to create reusable components. </p>
+                <pre><code class="language-python"># file: common/list_records.py
+from typing import (
+    TYPE_CHECKING, Optional, Type, Sequence, 
+    Union, Iterable, Callable, Tuple
+)
+from math import ceil
+from jembe import Component 
+
+if TYPE_CHECKING:
+    from flask_sqlalchemy.model import Model
+    from jembe.component_config import (
+        CConfigRedisplayFlag, ComponentConfig
+    )
+
+class ListRecords(Component):
+    """Simplified implementation of Reusable List Records Component"""
+
+    class Config(Component.Config):
+        """
+            Config class defines behavior of the component and it
+            is initialised only once when app starts. 
+        """
+        BASE_TEMPLATE = "common/list_records.html"
+
+        def __init__(
+            self,
+            model: Type["Model"],
+            columns: Optional[Sequence[str]] = None,
+            template: Optional[Union[str, Iterable[str]]] = None,
+            components: Optional[Dict[str, ComponentRef]] = None,
+            inject_into_components: Optional[
+                Callable[["Component", "ComponentConfig"], dict]
+            ] = None,
+            redisplay: Tuple["CConfigRedisplayFlag", ...] = (),
+            changes_url: bool = True,
+            url_query_params: Optional[Dict[str, str]] = None,
+        ):
+            self.model = model
+            # get model verbose name (easy way not the best way)
+            self.model_name = model.__name__ 
+
+            self.columns = [
+                c for c in model.__table__.columns 
+                if c.name in columns or columns is None
+            ]
+
+            # use url_query_params maping to generate url like this:
+            # http[s]://&lt;component.url&gt;?p=&lt;page&gt;&amp;ps=&lt;page_size&gt;
+            if url_query_params is None:
+                url_query_params = dict(p="page", ps="page_size")
+
+            if template is None:
+                template = ("", self.BASE_TEMPLATE)
+
+            super().__init__(
+                template=template,
+                components=components,
+                inject_into_components=inject_into_components,
+                redisplay=redisplay,
+                changes_url=changes_url,
+                url_query_params=url_query_params,
+            )
+
+    # help pylint/mypy and intelisens of your IDE
+    _config: Config 
+
+	def __init__(self, page_size: int = 10, page: int = 0 ):
+        def super().__init__()
+
+	def display(self):
+        # create query
+        Record = self._config.model
+		records_query = Record.query
+
+        self.records_count = records_query.count()
+
+        # do the pagination
+        self.total_pages = ceil(
+            self.records_count / self.state.page_size
+        )
+
+        if self.state.page < 1:
+            self.state.page = 1
+        if self.state.page >= self.total_pages:
+            self.state.page = self.total_pages
+        start = (self.state.page - 1) * self.state.page_size
+
+        # get records
+        self.records = records_query.order_by(Record.id.desc())[
+            start : start + self.state.page_size
+        ]
+
+        return self.render_template()</code></pre>
+                <pre><code class="language-jinja2">{%raw%}{# file: templates/common/list_records.html #} 
+&lt;h1&gt;{{_config.model_name}}&lt;/h1&gt;
+{% if component('add').is_accessible() %}
+    &lt;button jmb:on.click="{{component().jrl}}"&gt;Add&lt;/button&gt;
+{% endif %}
+&lt;table&gt;
+    &lt;thead&gt;
+        &lt;tr&gt;
+            {% for column in _config.columns %}
+                &lt;th&gt;{{column.name}}&lt;/th&gt;
+            {% endfor %}
+            &lt;th&gt;Actions&lt;/th&gt;
+        &lt;/tr&gt;
+    &lt;/thead&gt;
+    {% for record in records %}
+    &lt;tr&gt;
+        {% for column in _config.columns %}
+            &lt;td&gt;{{record[column.name]}}&lt;/td&gt; 
+        {%endfor%}
+        &lt;td&gt;
+        {% if component('view', record_id=record.id).is_accessible() %}
+            &lt;button jmb:on.click="{{component().jrl}}"&gt;View&lt;/button&gt;
+        {% endif %}
+        {% if component('edit', record_id=record.id).is_accessible() %}
+            &lt;button jmb:on.click="{{component().jrl}}"&gt;Edit&lt;/button&gt;
+        {% endif %}
+        &lt;/td&gt;
+    &lt;/tr&gt;
+    {% endfor %}
+&lt;/table&gt;
+&lt;nav&gt;
+    {% if page &gt; 1 %}
+        &lt;button jmb:on.click="page = {{page}} - 1"&gt;Prev&lt;/button&gt;
+    {% endif %}
+    Page {{page}} of {{total_pages}} ({{records_count}} records)
+    {% if total_pages &gt; page %}
+        &lt;button jmb:on.click="page = {{page}} - 1"&gt;Next&lt;/button&gt;
+    {% endif %}
+&lt;/nav&gt;
+{%endraw%}</code></pre>
+                <h2>Build App With Reusable Components</h2>
+                <p>Building Imaginary Project managment application with prebuilded reusable CRUD Components</p>
+                <pre><code class="language-python code-small"># file: pages/projects.py
+@jmb.page(
+    "main",
+    AppPage.Config(
+        navigation_links=[
+            ("Projects", "./projects"),
+            ("Settings", (
+                ("Users", "./users")
+            ))
+        ]
+        components=dict(
+            projects=(
+                ListRecords,
+                ListRecords.Config(
+                    model=Project,
+                    columns=("name", "description"),
+                    components={
+                        "add": (
+                            AddRecord,
+                            AddRecord.Config(
+                                model=Project, 
+                                form=model_form(
+                                    Project, 
+                                    db, 
+                                    exclude=("tasks",)
+                                )
+                            )
+                        ),
+                        "edit": (
+                            EditRecord,
+                            EditRecord.Config(
+                                model=Project,
+                                form=model_form(
+                                    Project, 
+                                    db, 
+                                    exclude=("tasks",)
+                                ),
+                                components=dict(
+                                    "tasks": (
+                                        ListRecordsInline,
+                                        ListRecordsInline.Config(
+                                            model=Task,
+                                            parent_id=Task.project_id,
+                                            components=dict(
+                                                "view": (
+                                                    ViewRecord,
+                                                    ViewRecord.Config(
+                                                        model=Task,
+                                                    )
+                                                ),
+                                                "add": (
+                                                    AddRecord,
+                                                    AddRecord.Config(
+                                                        model=Task,
+                                                        form=TaskForm,
+                                                        parent_id=Taks.project_id
+                                                    )
+                                                ),
+                                                "edit": (
+                                                    EditRecord,
+                                                    EditRecord.Config(
+                                                        model=Task,
+                                                        form=model_form(
+                                                            Task,
+                                                            db,
+                                                            exclude=("project_id",)
+                                                        )
+                                                    )
+                                                )
+                                            ),
+                                            inject_into_components=(
+                                                lambda self, _config: {
+                                                    "parent_id": 
+                                                        self.state.parent_id
+                                                }
+                                            )
+                                        )
+                                    )
+                                ),
+                                inject_into_components=lambda self, _config: {
+                                    "parent_id": self.state.record_id
+                                }
+                            )
+                        )
+                    }
+                )
+            ),
+            "users": (
+                ListRecords,
+                ListRecords.Config(
+                    components={
+                        "add": (AddRecord, AddRecord.Config(model=User))
+                        "edit": (EditRecord, EditRecord.Config(model=User))
+                    }
+                )
+           )
+        )
+    )
+)
+class MainPage(AppPage):
+    pass</code></pre>
+    <p>You can always extend EditRecord or any other component in hiearachy or replece it with your custom component to add exra functionality.</p>
+    <p>With library of reusable components you will be able to build backbone of your application quickly and then extend or replace specific components to add custom features.</p>
+            </div>
+        </div>
+    </div>
+
+    {{sign_up()}}
+{% endblock content %}

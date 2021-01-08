@@ -21,7 +21,7 @@
                         <span class="inline-flex rounded-md shadow">
                             <a href="#newsletter-headline"
                                 class="inline-flex items-center px-4 py-2 text-base font-medium text-white border border-transparent rounded-md bg-lime-600 hover:bg-lime-700">
-                                Notify me when available
+                                Notify me when launches
                             </a>
                         </span>
                     </div>
@@ -79,9 +79,7 @@ class EditProject(Component):
         self, 
         project_id:int, 
         form:Optional["ProjectForm"] = None, 
-        _project:Optional[Project] = None 
     ):
-        self._project = _project
         if form is None:
             self.state.form = ProjectForm(name=self.project.name)
         super().__init__()
@@ -91,12 +89,13 @@ class EditProject(Component):
         """
             Returns project
             either by quering database or using instance 
-            provided in "_project" __init__ param
+            already obtained from database
         """
-        if (self._project is None or 
-            self._project.id != self.state.project_id
+        if (hasattr(self,"_project") and 
+            self._project.id == self.state.project_id
         ):
-            self._project = Project.query.get(id=self.state.project_id)
+            return self._project
+        self._project = Project.query.get(id=self.state.project_id)
         return self._project
     
     @action
@@ -105,13 +104,11 @@ class EditProject(Component):
             self.project.name = self.state.form.name
             db.session.update(self.project)
             db.session.commit()
-            self.emit(
-                "save", 
-                project=self.project, 
-                project_id=self.project.id
-            )
+
+            self.emit("save")
             # no need to redispay this component after successfull save
             return False 
+
 
 @page("projects", Component.Config(
     components={
@@ -211,7 +208,6 @@ class ListRecords(Component):
         def __init__(
             self,
             model: Type["Model"],
-            columns: Optional[Sequence[str]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, ComponentRef]] = None,
             inject_into_components: Optional[
@@ -225,15 +221,10 @@ class ListRecords(Component):
             # get model verbose name (easy way not the best way)
             self.model_name = model.__name__ 
 
-            self.columns = [
-                c for c in model.__table__.columns 
-                if c.name in columns or columns is None
-            ]
-
             # use url_query_params maping to generate url like this:
-            # http[s]://&lt;component.url&gt;?p=&lt;page&gt;&amp;ps=&lt;page_size&gt;
+            # http[s]://&lt;component.url&gt;?s=&lt;search&gt;
             if url_query_params is None:
-                url_query_params = dict(p="page", ps="page_size")
+                url_query_params = dict(s="search")
 
             if template is None:
                 template = ("", self.BASE_TEMPLATE)
@@ -250,72 +241,41 @@ class ListRecords(Component):
     # help pylint/mypy and intelisens of your IDE
     _config: Config 
 
-	def __init__(self, page_size: int = 10, page: int = 0 ):
+	def __init__(self, search: str = ""):
         def super().__init__()
 
 	def display(self):
         # create query
         Record = self._config.model
-		records_query = Record.query
-
+		self.records = Record.query
+        
+        if (self.state.search and 
+            "name" in self._config.model.__table__.columns.keys()):
+            self.records = self.records.filter(
+                Record.name.like = "{}%".format(self.state.search))
+            )
         self.records_count = records_query.count()
-
-        # do the pagination
-        self.total_pages = ceil(
-            self.records_count / self.state.page_size
-        )
-
-        if self.state.page < 1:
-            self.state.page = 1
-        if self.state.page >= self.total_pages:
-            self.state.page = self.total_pages
-        start = (self.state.page - 1) * self.state.page_size
-
-        # get records
-        self.records = records_query.order_by(Record.id.desc())[
-            start : start + self.state.page_size
-        ]
 
         return self.render_template()</code></pre>
                 <pre><code class="language-jinja2">{%raw%}{# file: templates/common/list_records.html #} 
 &lt;h1&gt;{{_config.model_name}}&lt;/h1&gt;
+&lt;input jmb:bind=”search” type=”text” placeholder=”Search...”/&gt;
 {% if component('add').is_accessible() %}
     &lt;button jmb:on.click="{{component().jrl}}"&gt;Add&lt;/button&gt;
 {% endif %}
-&lt;table&gt;
-    &lt;thead&gt;
-        &lt;tr&gt;
-            {% for column in _config.columns %}
-                &lt;th&gt;{{column.name}}&lt;/th&gt;
-            {% endfor %}
-            &lt;th&gt;Actions&lt;/th&gt;
-        &lt;/tr&gt;
-    &lt;/thead&gt;
-    {% for record in records %}
-    &lt;tr&gt;
-        {% for column in _config.columns %}
-            &lt;td&gt;{{record[column.name]}}&lt;/td&gt; 
-        {%endfor%}
-        &lt;td&gt;
+&lt;ul&gt;
+{% for record in records %}
+    &lt;li&gt;
+        {{project}}
         {% if component('view', record_id=record.id).is_accessible() %}
             &lt;button jmb:on.click="{{component().jrl}}"&gt;View&lt;/button&gt;
         {% endif %}
         {% if component('edit', record_id=record.id).is_accessible() %}
             &lt;button jmb:on.click="{{component().jrl}}"&gt;Edit&lt;/button&gt;
         {% endif %}
-        &lt;/td&gt;
-    &lt;/tr&gt;
-    {% endfor %}
-&lt;/table&gt;
-&lt;nav&gt;
-    {% if page &gt; 1 %}
-        &lt;button jmb:on.click="page = {{page}} - 1"&gt;Prev&lt;/button&gt;
-    {% endif %}
-    Page {{page}} of {{total_pages}} ({{records_count}} records)
-    {% if total_pages &gt; page %}
-        &lt;button jmb:on.click="page = {{page}} - 1"&gt;Next&lt;/button&gt;
-    {% endif %}
-&lt;/nav&gt;
+    &lt;/li&gt;
+{% endfor %}
+&lt;/ul&gt;
 {%endraw%}</code></pre>
                 <h2>Build Simple App With Reusable Components</h2>
                 <p>Building Imaginary Project managment application with prebuilded reusable CRUD Components</p>

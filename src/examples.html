@@ -283,14 +283,8 @@ class ListRecords(Component):
 @jmb.page(
     "main",
     AppPage.Config(
-        navigation_links=[
-            ("Projects", "./projects"),
-            ("Settings", (
-                ("Users", "./users")
-            ))
-        ]
-        components=dict(
-            projects=(
+        components={
+            "projects": (
                 ListRecords,
                 ListRecords.Config(
                     model=Project,
@@ -316,13 +310,13 @@ class ListRecords(Component):
                                     db, 
                                     exclude=("tasks",)
                                 ),
-                                components=dict(
+                                components={
                                     "tasks": (
                                         ListRecordsInline,
                                         ListRecordsInline.Config(
                                             model=Task,
                                             parent_id=Task.project_id,
-                                            components=dict(
+                                            components={
                                                 "view": (
                                                     ViewRecord,
                                                     ViewRecord.Config(
@@ -375,7 +369,7 @@ class ListRecords(Component):
                     }
                 )
            )
-        )
+        }
     )
 )
 class MainPage(AppPage):

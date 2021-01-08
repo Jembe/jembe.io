@@ -1,7 +1,9 @@
 ✔ Integrate email form @done(20-12-30 14:28)
 ✔ Add SEO tags @done(20-12-30 14:56)
 ✔ Publish @done(20-12-30 15:12)
-☐ Add google analytics
+Add google analytics:
+    ✔ add basic google analytics @done(21-01-08 22:07)
+    ☐ learn about google analytics and configurie it properlly
 ☐ Promote on google
 ✔ Add more code examples @done(21-01-06 12:55)
 ☐ Add video for examples

@@ -1,5 +1,5 @@
-{% from '_macros.html' import sign_up %}
-{% extends "_layout.html" %}
+{% from "common/_macros.html" import sign_up %}
+{% extends "common/_layout.html" %}
 {% block title %}Jembe Web Framework{% endblock title %}
 
 {% block description %}A full-stack python web framework for rapid development of modern web apps by one-person team, comming soon. Jembe uses server rendering, html-over-wire and configurable web components to enable rapid developing.{% endblock description %}
@@ -75,7 +75,8 @@
                                 <ul>
                                     <li>Easy creation of truly reusable web components;</li>
                                     <li>Rapid development using components, actions and events;</li>
-                                    <li>Development without need to write JavaScript code.</li>
+                                    <li>Development without need to write JavaScript code;</li>
+                                    <li>Server-side HTML rendering for updating client UI.</li>
                                 </ul>
                             </dd>
                         </div>
@@ -99,9 +100,9 @@
                             <dd class="mt-2 text-base prose-sm prose text-gray-500 ">
                                 <p>Yes, if You're:</p>
                                 <ul>
-                                    <li>Building web apps all by yourself;</li>
+                                    <li>Building web apps all by yourself or in very small teams;</li>
                                     <li>Coding “same logic” between "similar pages" in backend and frontend;</li>
-                                    <li>Already coding or don't mind coding in Python?
+                                    <li>Already coding or don't mind coding in Python?</li>
                                 </ul>
                             </dd>
                         </div>
@@ -117,43 +118,23 @@
     <!-- Content section -->
     <div class="relative py-16 overflow-hidden bg-white">
         <div class="relative px-4 sm:px-6 lg:px-8">
+            {# <div class="mx-auto mt-6 prose prose-lg text-gray-500 max-w-7xl prose-lime sm:px-6 lg:px-8"> #}
+                <h2 class="hidden">Jembe Code Examples</h2>
+            {# </div> #}
+
+            <div class="mx-auto mt-6 max-w-7xl sm:px-6 lg:px-8">
+                {% include "common/list_projects_example.html" %}
+            </div>
+            <div class="mx-auto mt-24 max-w-7xl sm:px-6 lg:px-8">
+                {% include "common/list_projects_paginated_example.html" %}
+            </div>
+            <div class="mx-auto mt-24 max-w-7xl sm:px-6 lg:px-8">
+                {% include "common/list_projects_editable_example.html" %}
+            </div>
+            <div class="mx-auto mt-24 max-w-7xl sm:px-6 lg:px-8">
+                {% include "common/demo_reusable_example.html" %}
+            </div>
             <div class="mx-auto mt-6 prose prose-lg text-gray-500 prose-lime">
-                <h2>Show me an example</h2>
-                <pre><code class="language-python"># file: pages/projects.py
-
-from jembe import Component
-from ..model import Project
-
-@page("projects")
-class Projects(Component):
-    """
-    Display list of projects,
-    searchable by project name.
-    """
-	def __init__(self, search:str=””):
-        def super().__init__()
-
-	def display(self):
-		self.projects = Projects.query()
-		if self.state.search:
-			self.projects = self.projects.filter(
-                Project.name.like=”{}%”.format(self.state.search)
-            )
-        return self.render_template()</code></pre>
-                <pre><code class="language-jinja2">{%raw%}{# file: templates/project.html #} 
-{# Jinja2 default template for projects page #}
-
-&lt;html&gt;
-&lt;body&gt;
-    &lt;h1&gt;Projects&lt;/h1&gt;
-    &lt;input jmb:bind=”search” type=”text” placeholder=”Search...”/&gt;
-    &lt;ul&gt;
-    {% for project in projects %}
-        &lt;li&gt;{{project}}&lt;/li&gt;
-    {% endfor %}
-    &lt;/ul&gt;
-&lt;/body&gt;
-&lt;/html&gt;{%endraw%}</code></pre>
                 <h2>How does Jembe works?</h2>
                 <ul>
                     <li>On initial request Jembe renders the whole page, composed of one or multiple components;</li>
@@ -162,16 +143,14 @@ class Projects(Component):
                     <li>Server executes actions associated with user interactions and re-renders only components that
                         have been changed;</li>
                     <li>Browser receives HTML and mutates DOM according to changes in re-rendered components.</li>
-
                 </ul>
-
             </div>
         </div>
     </div>
 
     {{sign_up()}}
 
-    <div class="bg-gray-50">
+    {# <div class="bg-gray-50">
         <div class="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
             <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
                 <span class="block text-lime-600">Still unsure is the Jembe worth your time?</span>
@@ -186,5 +165,5 @@ class Projects(Component):
                 </div>
             </div>
         </div>
-    </div>
+    </div> #}
 {% endblock content %}

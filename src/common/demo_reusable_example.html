@@ -1,0 +1,263 @@
+{% set tabs = [
+    {
+        name:'demo', 
+        title:'Reusable Components Demo', 
+        type:'app',
+        content: '
+<iframe src="'+examples_url+'/demo_reusable" class="w-full bg-white" style="height:55rem" frameborder="0"></iframe>
+        '
+     }, 
+    {
+        name:'c', 
+        title:'pages/demo_reusable.py', 
+        type:'py',
+        content: '<pre><code class="language-python">from jembe import config, Component
+from ..jmb import jmb
+from ..components import CPage, CCrudListRecords, CEdit, FormBase, CView, CCreate, CDelete,
+from ..db import db
+from ..models import Project, Note
+from wtforms import validators as v, StringField, TextAreaField, SelectField
+import sqlalchemy as sa
+
+
+class ProjectForm(FormBase):
+    """Defines project form using wtforms library"""
+    name = StringField(
+        validators=[v.DataRequired(), v.Length(max=Project.name.type.length)]
+    )
+    description = TextAreaField()
+
+    def mount(self, component: "Component") -> "FormBase":
+        if isinstance(component, CView):
+            # disable all fields when form is used in view component
+            self.disable_field(self.name)
+            self.disable_field(self.description)
+        return super().mount(component)
+
+
+@config(
+    CCrudListRecords.Config(
+        # database engine
+        db=db,
+        # db query to list records
+        query=sa.orm.Query([Project.id, Project.name]).order_by(Project.id.desc()),
+        # search condition to be add to query
+        search_filter=lambda search: Project.name.ilike("%{}%".format(search)),
+        # links in component header
+        actions=[lambda self: ("Create", self.component("create"))],
+        # links for every record in list
+        record_actions=[
+            lambda self, record: ("View", self.component("view", id=record.id)),
+            lambda self, record: ("Edit", self.component("edit", id=record.id)),
+            lambda self, record: ("Delete", self.component("delete", id=record.id)),
+        ],
+        # subcomonents and its configuration
+        components={
+            "edit": (CEdit, CEdit.Config(db=db, model=Project, form=ProjectForm)),
+            "create": (CCreate, CCreate.Config(db=db, model=Project, form=ProjectForm)),
+            "view": (CView, CView.Config(db=db, model=Project, form=ProjectForm)),
+            "delete": (CDelete, CDelete.Config(db=db, model=Project)),
+        },
+    )
+)
+class CListProjects(CCrudListRecords):
+    pass
+
+
+class NoteForm(FormBase):
+    name = StringField(
+        validators=[v.DataRequired(), v.Length(max=Project.name.type.length)]
+    )
+    description = TextAreaField()
+    project_id = SelectField("Project", coerce=int)
+
+    def mount(self, component: "Component") -> "FormBase":
+        if isinstance(component, CView):
+            self.disable_field(self.name)
+            self.disable_field(self.description)
+            self.disable_field(self.project_id)
+            # displays only selected project inside view component
+            self.project_id.choices = [
+                (p.id, p.name)
+                for p in db.session.query(Project).filter(
+                    Project.id == self.project_id.data
+                )
+            ]
+        else:
+            # add projects in select project field
+            self.project_id.choices = [
+                (p.id, p.name) for p in db.session.query(Project)
+            ]
+        return super().mount(component)
+
+
+@config(
+    CCrudListRecords.Config(
+        db=db,
+        query=(
+            sa.orm.Query(
+                [
+                    Note.id,
+                    Note.name,
+                    sa.sql.func.substr(Project.name, 1, 25).label("project"),
+                ]
+            )
+            .join(Note.project)
+            .order_by(Note.id.desc())
+        ),
+        search_filter=lambda search: Note.name.ilike("%{}%".format(search)),
+        actions=[lambda self: ("Create", self.component("create"))],
+        record_actions=[
+            lambda self, record: ("View", self.component("view", id=record.id),),
+            lambda self, record: ("Edit", self.component("edit", id=record.id),),
+            lambda self, record: ("Delete", self.component("delete", id=record.id),),
+        ],
+        components={
+            "edit": (CEdit, CEdit.Config(db=db, model=Note, form=NoteForm)),
+            "create": (CCreate, CCreate.Config(db=db, model=Note, form=NoteForm),),
+            "view": (CView, CView.Config(db=db, model=Note, form=NoteForm)),
+            "delete": (CDelete, CDelete.Config(db=db, model=Note)),
+        },
+    )
+)
+class CListNotes(CCrudListRecords):
+    pass
+
+
+@jmb.page(
+    "demo_reusable",
+    CPage.Config(components={"projects": CListProjects, "notes": CListNotes}),
+)
+class DemoReusableComponents(CPage):
+    pass</code></pre>'
+    }, 
+    {   
+        name:'edit',
+        title:'components/edit.py', 
+        type:'py',
+        content: '
+<pre><code class="language-python">"""
+Example on how reusable component can be build.
+
+Source code of all components are avaiable on: 
+https://github.com/Jembe/jembe-io-examples
+"""
+
+from functools import cached_property
+from typing import Any, TYPE_CHECKING, Optional, Type, Union, Iterable, Dict, Callable, Tuple
+from jembe import Component, run_only_once, action
+from .form import FormBase
+
+if TYPE_CHECKING:
+    from flask_sqlalchemy import SQLAlchemy, Model
+    from jembe import RedisplayFlag, ComponentConfig, ComponentRef
+    import sqlalchemy as sa
+
+
+class CEdit(Component):
+    class Config(Component.Config):
+        """To add new configuration parameters we extends Component.Config"""
+        default_template = "components/edit.html"
+
+        def __init__(
+            self,
+            db: "SQLAlchemy",
+            form: Type["FormBase"],
+            model: "Model",
+            template: Optional[Union[str, Iterable[str]]] = None,
+            components: Optional[Dict[str, "ComponentRef"]] = None,
+            inject_into_components: Optional[
+                Callable[["Component", "ComponentConfig"], dict]
+            ] = None,
+            redisplay: Tuple["RedisplayFlag", ...] = (),
+            changes_url: bool = True,
+            url_query_params: Optional[Dict[str, str]] = None,
+        ):
+            """
+                New configuration parameters are added as __init__ arguments.
+
+                We are relaying on code editor to help us create this __init__ method.
+            """
+            self.db = db
+            self.form = form
+            self.model = model
+
+            if template is None:
+                # when template is list, 
+                # first avaiable template is used
+                template = ("", self.default_template)
+
+            super().__init__(
+                template=template,
+                components=components,
+                inject_into_components=inject_into_components,
+                redisplay=redisplay,
+                changes_url=changes_url,
+                url_query_params=url_query_params,
+            )
+
+    # This is to help code editor autocomplete suggestions
+    _config: Config
+
+    def __init__(self, id: int, form: Optional[FormBase] = None):
+        """Defines "id" and "form" state variables"""
+        super().__init__()
+
+    @classmethod
+    def load_init_param(cls, config: "ComponentConfig", name: str, value: Any) -> Any:
+        """ "Deserielise" form recived from client"""
+        if name == "form":
+            # otherwise it will use FormBase.load_init_param
+            return config.form.load_init_param(value)
+        return super().load_init_param(config, name, value)
+
+    @cached_property
+    def record(self) -> "Model":
+        return self._config.db.session.query(self._config.model).get(self.state.id)
+
+    @run_only_once
+    def mount(self):
+        if self.state.form is None:
+            self.state.form = self._config.form(obj=self.record)
+        self.state.form.mount(self)
+
+    @action
+    def save(self):
+        self.mount()
+        if self.state.form.validate():
+            try:
+                self.state.form.populate_obj(self.record)
+                self._config.db.session.commit()
+                self.emit("save", record=self.record, id=self.record.id)
+                self.emit(
+                    "pushNotification", message="{} saved".format(str(self.record))
+                )
+                # do not execute display after sucessfull save
+                return False
+            except sa.exc.SQLAlchemyError as error:
+                self.emit(
+                    "pushNotification",
+                    message=str(getattr(error, "orig", error)),
+                    level="error",
+                )
+
+        self._config.db.session.rollback()
+        # force redisplay of this edit component
+        return True
+
+    @action
+    def cancel(self):
+        self.emit("cancel")
+        # force not redisplaying this edit component
+        return False
+
+    def display(self):
+        self.mount()
+        return super().display()
+
+    @property
+    def title(self):
+        return "Edit: {}".format(self.record)</code></pre>'
+    }
+] %}
+{% include "./_code_example.html" %}

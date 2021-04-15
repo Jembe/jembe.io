@@ -1,0 +1,114 @@
+{% set tabs = [
+    {
+        name:'demo', 
+        title:'Paginated Projects List', 
+        type:'app',
+        content: '
+<iframe src="'+examples_url+'/projects_paginated" class="w-full bg-white" style="height:24rem" frameborder="0"></iframe>
+        '
+     }, 
+    {
+        name:'c', 
+        title:'pages/projects_paginated.py', 
+        type:'py',
+        content: '
+<pre><code class="language-python">from math import ceil
+from jembe import Component
+from ..jmb import jmb
+from ..db import db
+from ..models import Project
+
+@jmb.page(
+    "projects_paginated", 
+    Component.Config(url_query_params={"p": "page", "s": "search"})
+)
+class ProjectsPaginated(Component):
+    """
+    Displays searchable and paginated list of projects.
+    
+    @jmb.page decorator, configures "page" and "search" state variables 
+    to be used as query parameters "p" and "s" when building url.
+    """
+
+    page_size = 10
+
+    def __init__(self, search: str = "", page: int = 0):
+        """Defines "search" and "page" state variables"""
+        super().__init__()
+
+    def display(self):
+        self.projects = db.session.query(Project).order_by(Project.id.desc())
+
+        # apply search filter
+        if self.state.search != "":
+            self.projects = self.projects.filter(
+                Project.name.ilike("%{}%".format(self.state.search))
+            )
+
+        # apply pagination manually
+        self.total_records = self.projects.count()
+        self.total_pages = ceil(self.total_records / self.page_size)
+        if self.state.page > self.total_pages - 1:
+            self.state.page = self.total_pages - 1
+        if self.state.page < 0:
+            self.state.page = 0
+        self.start_record_index = self.state.page * self.page_size
+        self.end_record_index = self.start_record_index + self.page_size
+        if self.end_record_index > self.total_records:
+            self.end_record_index = self.total_records
+        self.projects = self.projects[self.start_record_index : self.end_record_index]
+
+        return super().display()</code></pre>'
+    }, 
+    {   
+        name:'html', 
+        title:'templates/projects_paginated.html', 
+        type:'html',
+        content: '
+<pre><code class="language-jinja2">&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Projects Paginated&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Projects&lt;/h1&gt;
+    &lt;!-- Explicitly setting "search" state variable to input value and "page" to zero
+         when input event is fired (when value of input has been changed) --&gt;
+    &lt;input jmb-on:input="page=0;search=$self.value;" value="{{search}}" type="text" placeholder="Search..."&gt;
+    &lt;ul&gt;
+    {% for project in projects  %}
+        &lt;li&gt;{{project.name}}&lt;/li&gt;
+    {% endfor %}
+    &lt;/ul&gt;
+    &lt;nav&gt;
+        &lt;button jmb-on:click="page = page - 1" {% if page == 0 %} disabled {% endif %}&gt;
+            Prev
+        &lt;/button&gt;
+        Page {{page + 1 if total_pages &gt; 0 else 0}} of {{total_pages}} ({{total_records}} projects)
+        &lt;button jmb-on:click="page = page + 1" {% if page == total_pages - 1 or total_pages == 0 %}disabled{% endif %}&gt;
+            Next
+        &lt;/button&gt;
+    &lt;/nav&gt;
+
+    &lt;script src="{{ url_for(\'jembe.static\', filename=\'js/jembe.js\') }}" defer&gt;&lt;/script&gt; 
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>'
+    },
+    {
+        name:'model', 
+        title:'models/project.py', 
+        type:'py',
+        content: '<pre><code class="language-python">from ..db import db
+import sqlalchemy as sa
+
+class Project(db.Model):
+    __tablename__ = "projects"
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(150), nullable=False, unique=True)
+    description = sa.Column(sa.Text)
+
+    def __str__(self) -> str:
+        return self.name</code></pre>'
+    }
+] %}
+{% include "./_code_example.html" %}

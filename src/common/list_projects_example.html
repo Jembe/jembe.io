@@ -1,0 +1,81 @@
+{% set tabs = [
+    {
+        name:'demo', 
+        title:'Projects List', 
+        type:'app',
+        content: '
+<iframe src="'+examples_url+'/projects" class="w-full bg-white" style="height:42rem" frameborder="0"></iframe>
+        '
+     }, 
+    {
+        name:'c', 
+        title:'pages/projects.py', 
+        type:'py',
+        content: '<pre><code class="language-python">from jembe import Component
+from ..jmb import jmb
+from ..db import db
+from ..models import Project
+
+@jmb.page("projects")
+class Projects(Component):
+    """Displays searchable list of projects"""
+
+    def __init__(self, search: str = ""):
+        """
+        Defines "search" to be a component state variable.
+
+        "Search" state variables is accessible and editable using self.state.search
+        """
+        super().__init__()
+
+    def display(self):
+        self.projects = db.session.query(Project).order_by(Project.id.desc())
+        if self.state.search != "":
+            self.projects = self.projects.filter(
+                Project.name.ilike("%{}%".format(self.state.search))
+            )
+        return super().display()</code></pre>'
+    }, 
+    {   
+        name:'chtml', 
+        title:'templates/projects.html', 
+        type:'html',
+        content: '
+<pre><code class="language-jinja2">&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Projects&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Projects&lt;/h1&gt;
+    &lt;!-- Associates "search" state variable with value of input field,  
+         forcing a component to redisplay when value changes. --&gt;
+    &lt;input jmb-model=”search” type=”text” placeholder=”Search...”/&gt;
+    &lt;ul&gt;
+    {% for project in projects %}
+        &lt;li&gt;{{project.name}}&lt;/li&gt;
+    {% endfor %}
+    &lt;/ul&gt;
+
+    &lt;script src="{{ url_for(\'jembe.static\', filename=\'js/jembe.js\') }}" defer&gt;&lt;/script&gt; 
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>'
+    },
+    {
+        name:'model', 
+        title:'models/project.py', 
+        type:'py',
+        content: '<pre><code class="language-python">from ..db import db
+import sqlalchemy as sa
+
+class Project(db.Model):
+    __tablename__ = "projects"
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(150), nullable=False, unique=True)
+    description = sa.Column(sa.Text)
+
+    def __str__(self) -> str:
+        return self.name</code></pre>'
+    }
+] %}
+{% include "./_code_example.html" %}

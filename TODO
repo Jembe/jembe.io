@@ -6,5 +6,7 @@ Add google analytics:
     ☐ learn about google analytics and configurie it properlly
 ☐ Promote on google
 ✔ Add more code examples @done(21-01-06 12:55)
-☐ Add video for examples
+✔ Add workable examples @done(21-04-15 13:34)
+✘ Add video for examples @cancelled(21-04-15 13:34)
+☐ Make rebuild to add postfix on css so that cache is refreshed (no need for f5 in browser)
 ☐ Add Seo tags

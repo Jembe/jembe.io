@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "jembeio",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Website for Jembe.io",
   "scripts": {
     "serve": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"npm run css:build -- --watch\" \"chokidar \\\"src/**/*.html\\\" \\\"src/data.json\\\" \\\"src/img/**/*\\\" \\\"src/js/**/*\\\" -c \\\"npm run html:build\\\" \\\"cp -rp src/img public\\\" \\\"cp -rp src/js public\\\" \"  \"live-server --wait=1000 ./public\"",

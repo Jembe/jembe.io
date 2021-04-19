@@ -65,7 +65,17 @@
         {#
         <!-- Content goes here --> #}
         {% for tab in tabs %}
-        <div x-show="'{{tab.name}}'===activeTab">{{tab.content|safe()}}</div>
+        {% if tab.description %}
+        <div x-show="'{{tab.name}}'===activeTab" class="flex flex-col-reverse sm:flex-row">
+            <div class="flex-grow">{{tab.content|safe()}}</div>
+            <div class="py-4 prose-sm prose sm:px-6 sm:py-0 sm:w-72">{{tab.description|safe()}}</div>
+        </div>
+        
+        {% else %}
+        <div x-show="'{{tab.name}}'===activeTab">
+            {{tab.content|safe()}}
+        </div>
+        {% endif %}
         {% endfor %}
     </div>
 </div>

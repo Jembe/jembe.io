@@ -1,3 +1,5 @@
 {
+    "examples_url_prod": "https://jembe.io/examples",
+    "examples_url_dev": "http://localhost:5000",
     "examples_url": "https://jembe.io/examples"
 }

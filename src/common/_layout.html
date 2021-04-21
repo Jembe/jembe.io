@@ -14,22 +14,11 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock title %}</title>
-    <meta name="description" content="{% block description %}{% endblock description %}">
     <link rel="icon" sizes="32x32" href="img/favicon-32x32.png" type="image/png">
     <link rel="icon" sizes="16x16" href="img/favicon-16x16.png" type="image/png">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <link rel="stylesheet" href="css/main.css">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:site" content="@jembeio">
-    <meta name="twitter:title" content="Jembe Web Framework">
-    <meta name="twitter:description" content="Python web framework for developing modern web apps, build on top of Flask, designed for rapid development using reusable components, actions and events.">
-    <meta name="twitter:image" content="https://jembe.io/img/jembe-logo-twitter.png">
-    <meta name="twitter:image:alt" content="Jembe logo">
-    <meta property="og:title" content="Jembe Web Framework">
-    <meta property="og:description" content="Python web framework for developing modern web apps, build on top of Flask, designed for rapid development using reusable components, actions and events.">
-    <meta property="og:image" content="https://jembe.io/img/jembe-logo-twitter.png">
-    <meta property="og:url" content="https://jembe.io/index.htm">
+    {% block head %}{% endblock head %}
 </head>
 <body>
     {% block content %}{% endblock content %}

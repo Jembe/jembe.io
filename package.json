@@ -6,9 +6,10 @@
   "scripts": {
     "serve": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"npm run css:build -- --watch\" \"chokidar \\\"src/**/*.html\\\" \\\"src/data.json\\\" \\\"src/img/**/*\\\" \\\"src/js/**/*\\\" -c \\\"npm run html:build\\\" \\\"cp -rp src/img public\\\" \\\"cp -rp src/js public\\\" \"  \"live-server --wait=1000 ./public\"",
     "html:build": "nunjucks \"**/[^_]*.html\" src/data.json -p src -o public",
+    "copy_resurces": "concurrently \"cp -rp src/img public\" \"cp -rp src/js public\" \"cp -p src/robots.txt public\"",
     "css:build": "postcss src/css/main.css -o public/css/main.css",
-    "dev": "cross-env NODE_ENV=development concurrently \"npm run css:build\" \"npm run html:build\" \"cp -rp src/img public\" \"cp -rp src/js public\"",
-    "prod": "del-cli public/**/*; cross-env NODE_ENV=production concurrently \"npm run css:build\" \"npm run html:build\" \"cp -rp src/img public\" \"cp -rp src/js public\"",
+    "dev": "cross-env NODE_ENV=development concurrently \"npm run css:build\" \"npm run html:build\" \"npm run copy_resurces\"",
+    "prod": "del-cli public/**/*; cross-env NODE_ENV=production concurrently \"npm run css:build\" \"npm run html:build\" \"npm run copy_resurces\" ",
     "live": "live-server --wait=500 ./public",
     "start": "npm run serve"
   },

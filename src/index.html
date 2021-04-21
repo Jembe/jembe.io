@@ -1,8 +1,7 @@
-{% from "common/_macros.html" import sign_up %}
+{% from "common/_macros.html" import sign_up, seo_tags %}
 {% extends "common/_layout.html" %}
-{% block title %}Jembe Web Framework{% endblock title %}
+{% block head %}{{seo_tags("Jembe Framework - Rapidly develop modern web apps","Python web framework, build on top of Flask, designed for rapid development of modern web apps using reusable components, actions, and events.")}}{% endblock head %}
 
-{% block description %}Python web framework for developing modern web apps, build on top of Flask, designed for rapid development using reusable components, actions and events.{% endblock description %}
 
 
 {% block content %}
@@ -41,7 +40,7 @@
                         <span class="block text-lime-600">all by yourself</span>
                     </h1>
                     <p class="max-w-md mx-auto mt-3 text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                        with truly reusable web components 
+                        using reusable UI components written in Python and HTML
                     </p>
                 </div>
             </main>
@@ -70,12 +69,12 @@
                                 What is Jembe?
                             </dt>
                             <dd class="mt-2 text-base prose-sm prose text-gray-500">
-                                <p>Python web framework for developing modern web apps, build
+                                <p>Python web framework build
                                     on top of Flask, designed for:</p>
                                 <ul>
-                                    <li>Easy creation of truly reusable web components;</li>
-                                    <li>Rapid development using components, actions and events;</li>
-                                    <li>Development without need to write JavaScript code;</li>
+                                    <li>Rapid development using UI components, actions and events;</li>
+                                    <li>Easy creation of reusable UI components;</li>
+                                    <li>Development without need to write too much JavaScript code;</li>
                                     <li>Server-side HTML rendering for updating client UI.</li>
                                 </ul>
                             </dd>
@@ -101,7 +100,7 @@
                                 <p>Yes, if You're:</p>
                                 <ul>
                                     <li>Building web apps all by yourself or in very small teams;</li>
-                                    <li>Coding “same logic” between "similar pages" in backend and frontend;</li>
+                                    <li>Tired of coding “same thing” in backend and in frontend for similar pages;</li>
                                     <li>Already coding or don't mind coding in Python?</li>
                                 </ul>
                             </dd>

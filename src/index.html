@@ -1,6 +1,9 @@
 {% from "common/_macros.html" import sign_up, seo_tags %}
 {% extends "common/_layout.html" %}
-{% block head %}{{seo_tags("Jembe Framework - Rapidly develop modern web apps","Python web framework, build on top of Flask, designed for rapid development of modern web apps using reusable components, actions, and events.")}}{% endblock head %}
+{% block head %}
+{{seo_tags("Jembe Framework - Rapidly develop modern web apps","Python web framework, build on top of Flask, designed for rapid development of modern web apps using reusable components, actions, and events.")}}
+<link rel="canonical" href="https://jembe.io/" />
+{% endblock head %}
 
 
 
@@ -15,7 +18,7 @@
                         <div class="flex items-center justify-between w-full md:w-auto">
                             <a href="#">
                                 <span class="sr-only">Jembe</span>
-                                <img class="w-auto h-10 sm:h-12" src="img/logo-jembe-full.svg" alt="">
+                                <img class="w-auto h-10 sm:h-12" src="img/logo-jembe-full.svg" alt="Jembe Logo">
                             </a>
                         </div>
                     </div>

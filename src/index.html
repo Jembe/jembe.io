@@ -75,10 +75,10 @@
                                 <p>Python web framework build
                                     on top of Flask, designed for:</p>
                                 <ul>
-                                    <li>Rapid development using UI components, actions and events;</li>
-                                    <li>Easy creation of reusable UI components;</li>
-                                    <li>Development without need to write too much JavaScript code;</li>
-                                    <li>Server-side HTML rendering partially updates client UI.</li>
+                                    <li>Rapid development using <strong>components, actions and events</strong>;</li>
+                                    <li>Easy creation of <strong>reusable components</strong>;</li>
+                                    <li>No need to write too much JavaScript code;</li>
+                                    <li>Renders HTML on server and partially updates clients page.</li>
                                 </ul>
                             </dd>
                         </div>
@@ -97,13 +97,12 @@
                         </div>
                         <div class="ml-4">
                             <dt class="text-lg font-medium leading-6 text-gray-900">
-                                Is Jembe for You?
+                                Use Jembe, if You're:
                             </dt>
                             <dd class="mt-2 text-base prose-sm prose text-gray-500 ">
-                                <p>Yes, if You're:</p>
                                 <ul>
-                                    <li>Building web apps all by yourself or in very small teams;</li>
-                                    <li>Tired of coding “same thing” in backend and in frontend for similar pages;</li>
+                                    <li>Developing apps all by yourself or in very small teams;</li>
+                                    <li>Tired of doing “same thing” in backend and in frontend;</li>
                                     <li>Already coding or don't mind coding in Python?</li>
                                 </ul>
                             </dd>
@@ -139,12 +138,10 @@
             <div class="mx-auto mt-6 prose prose-lg text-gray-500 prose-lime">
                 <h2>How does Jembe works?</h2>
                 <ul>
-                    <li>On initial request Jembe renders the whole page, composed of one or multiple components;</li>
-                    <li>When user interacts with any component, information of current state of all components and user
-                        interactions are send back to server via AJAX request;</li>
-                    <li>Server executes actions associated with user interactions and re-renders only components that
-                        have been changed;</li>
-                    <li>Browser receives HTML and mutates DOM according to changes in re-rendered components.</li>
+                    <li>Initial http request gets the whole page, composed from one or multiple components;</li>
+                    <li>On user action, current state of all components and user action are send back to server using AJAX;</li>
+                    <li>Server executes action and re-renders components whose state is changed;</li>
+                    <li>Browser mutates DOM according to changes in re-displayed components.</li>
                 </ul>
             </div>
         </div>
